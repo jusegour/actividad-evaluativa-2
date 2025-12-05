@@ -1,61 +1,47 @@
-from flask_restful import Resource, reqparse
-import json
 from flask import request
-from utils.database_connection import DatabaseConnection
-
-def is_valid_token(token):
-    return token == 'abcd12345'
+from flask_restful import Resource, reqparse
+from utils.security import token_required
+from repositories import ProductRepository
 
 class ProductsResource(Resource):
     def __init__(self):
-       
-        self.db = DatabaseConnection('db.json')
-        self.db.connect()
+        # Inyección de dependencia "manual"
+        self.repo = ProductRepository('db.json') 
 
-        self.products = self.db.get_products()
-        self.parser = reqparse.RequestParser()
-        
+    @token_required
     def get(self, product_id=None):
-        args = self.parser.parse_args()
-        token = request.headers.get('Authorization')
+        # Filtro por categoría
         category_filter = request.args.get('category')
-      
-        if not token:
-            return { 'message': 'Unauthorized acces token not found'}, 401
-
-        if not is_valid_token(token):
-           return { 'message': 'Unauthorized invalid token'}, 401
-
-        if category_filter:
-            filtered_products = [p for p in self.products if p['category'].lower() == category_filter.lower()]
-            return filtered_products 
         
-        if product_id is not None:
-            product = next((p for p in self.products if p['id'] == product_id), None)
-            if product is not None:
-                return product
-            else:
-                return {'message': 'Product not found'}, 404
+        if category_filter:
+            products = self.repo.get_all()
+            filtered = [p for p in products if p['category'].lower() == category_filter.lower()]
+            return filtered, 200
+        
+        if product_id:
+            product = self.repo.get_by_id(product_id)
+            if product:
+                return product, 200
+            return {'message': 'Product not found'}, 404
               
-        return self.products
+        return self.repo.get_all(), 200
 
+    @token_required
     def post(self):
-        token = request.headers.get('Authorization')
         parser = reqparse.RequestParser()
-        parser.add_argument('name', type=str, required=True, help='Name of the product')
-        parser.add_argument('category', type=str, required=True, help='Category of the product')
-        parser.add_argument('price', type=float, required=True, help='Price of the product')
+        parser.add_argument('name', type=str, required=True, help='Name is required')
+        parser.add_argument('category', type=str, required=True, help='Category is required')
+        parser.add_argument('price', type=float, required=True, help='Price is required')
 
         args = parser.parse_args()
+        
+        products = self.repo.get_all()
         new_product = {
-            'id': len(self.products) + 1,
+            'id': len(products) + 1,
             'name': args['name'],
             'category': args['category'],
             'price': args['price']
         }
 
-        self.products.append(new_product)
-        self.db.add_product(new_product)
-        return {'mensaje': 'Product added', 'product': new_product}, 201
-
-
+        self.repo.add(new_product)
+        return {'message': 'Product added', 'product': new_product}, 201

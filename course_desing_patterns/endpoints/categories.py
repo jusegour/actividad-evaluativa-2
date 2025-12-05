@@ -1,90 +1,52 @@
-from flask import Flask, request
-from flask_restful import Resource, Api, reqparse
-import json
-from utils.database_connection import DatabaseConnection
-
-def is_valid_token(token):
-    return token == 'abcd12345'
+from flask_restful import Resource, reqparse
+from utils.security import token_required
+from repositories import CategoryRepository
 
 class CategoriesResource(Resource):
     def __init__(self):
+        self.repo = CategoryRepository('db.json')
 
-        self.db = DatabaseConnection('db.json')
-        self.db.connect()
-
-        self.categories_data = self.db.get_categories()
-        self.parser = reqparse.RequestParser()
-
+    @token_required
     def get(self, category_id=None):
-        token = request.headers.get('Authorization')
-        if not token:
-            return { 'message': 'Unauthorized acces token not found'}, 401
-        if not is_valid_token(token):
-           return { 'message': 'Unauthorized invalid token'}, 401
-
-        if category_id is not None:
-            category = next((p for p in self.categories_data if p['id'] == category_id), None)
-            if category is not None:
-                return category
-            else:
-                return {'message': 'Category not found'}, 404
+        if category_id:
+            category = self.repo.get_by_id(category_id)
+            if category:
+                return category, 200
+            return {'message': 'Category not found'}, 404
          
-        return self.categories_data 
+        return self.repo.get_all(), 200 
 
+    @token_required
     def post(self):
-        token = request.headers.get('Authorization')
-        if not token:
-            return { 'message': 'Unauthorized acces token not found'}, 401
-        if not is_valid_token(token):
-           return { 'message': 'Unauthorized invalid token'}, 401
-
-        self.parser.add_argument('name', type=str, required=True, help='Name of the category')
- 
-        args = self.parser.parse_args()
-        print("*****",args)
-        new_category_name = args['name']
-        if not new_category_name:
-            return {'message': 'Category name is required'}, 400
-
-        categories = self.categories_data
-        if new_category_name in categories:
+        parser = reqparse.RequestParser()
+        parser.add_argument('name', type=str, required=True, help='Name is required')
+        args = parser.parse_args()
+        
+        name = args['name']
+        
+        if self.repo.get_by_name(name):
             return {'message': 'Category already exists'}, 400
 
+        categories = self.repo.get_all()
         new_category = {
-                'id': len(self.categories_data) + 1,
-                'name': new_category_name
+            'id': len(categories) + 1,
+            'name': name
         }
-
-        categories.append(new_category)
-        self.categories_data = categories
         
-        self.db.add_category(new_category)
+        self.repo.add(new_category)
+        return {'message': 'Category added successfully', 'category': new_category}, 201
 
-        return {'message': 'Category added successfully'}, 201
-
+    @token_required
     def delete(self):
-        token = request.headers.get('Authorization')
-        if not token:
-            return { 'message': 'Unauthorized acces token not found'}, 401
-        if not is_valid_token(token):
-           return { 'message': 'Unauthorized invalid token'}, 401
-
-        args = self.parser.parse_args()
-        self.parser.add_argument('name', type=str, required=True, help='Name of the category')
-        args = self.parser.parse_args()
+        parser = reqparse.RequestParser()
+        parser.add_argument('name', type=str, required=True, help='Name is required')
+        args = parser.parse_args()
+        
         category_name = args['name']
- 
-        if not category_name:
-            return {'message': 'Category name is required'}, 400
-
-        category_to_remove = next((cat for cat in self.categories_data if cat["name"] == category_name), None)
-
-        if category_to_remove is None:
+        
+        # Validamos si existe antes de intentar borrar
+        if not self.repo.get_by_name(category_name):
             return {'message': 'Category not found'}, 404
-        else:
-            categories = [cat for cat in self.categories_data if cat["name"] != category_to_remove]
-            self.categories_data = categories
-            self.db.remove_category(category_name)
-
-            return {'message': 'Category removed successfully'}, 200
-
+            
+        self.repo.delete(category_name)
+        return {'message': 'Category removed successfully'}, 200
