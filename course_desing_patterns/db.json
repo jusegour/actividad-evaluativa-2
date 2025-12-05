@@ -169,5 +169,14 @@
             "name": "girls"
         }
     ],
-    "favorites": []
+    "favorites": [],
+    "inventory": [
+        {   "product_id": 1, 
+            "stock": 50
+        },
+        {
+            "product_id": 2, 
+            "stock": 0
+        }
+    ]
 }
