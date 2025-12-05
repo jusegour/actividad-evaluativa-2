@@ -127,18 +127,6 @@
             "price": 14.9
         },
         {
-            "id": 21,
-            "name": "super shirt",
-            "category": "kids",
-            "price": 14.9
-        },
-        {
-            "id": 23,
-            "name": "lala",
-            "category": "kids",
-            "price": 9.0
-        },
-        {
             "id": 23,
             "name": "lala",
             "category": "kids",
