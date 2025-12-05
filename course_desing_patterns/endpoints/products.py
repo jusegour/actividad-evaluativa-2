@@ -6,7 +6,7 @@ from repositories import ProductRepository
 class ProductsResource(Resource):
     def __init__(self):
         # Inyección de dependencia "manual"
-        self.repo = ProductRepository('db.json') 
+        self.repo = ProductRepository() 
 
     @token_required
     def get(self, product_id=None):
@@ -43,5 +43,5 @@ class ProductsResource(Resource):
             'price': args['price']
         }
 
-        self.repo.add(new_product)
+        new_product = self.repo.add(new_product)
         return {'message': 'Product added', 'product': new_product}, 201

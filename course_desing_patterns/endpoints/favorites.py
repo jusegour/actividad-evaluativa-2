@@ -4,8 +4,7 @@ from repositories import FavoriteRepository
 
 class FavoritesResource(Resource):
     def __init__(self):
-        # Nota: Este usa un archivo JSON diferente
-        self.repo = FavoriteRepository('favorites.json')
+        self.repo = FavoriteRepository()
 
     @token_required
     def get(self):

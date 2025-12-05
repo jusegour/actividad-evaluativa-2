@@ -4,7 +4,7 @@ from repositories import CategoryRepository
 
 class CategoriesResource(Resource):
     def __init__(self):
-        self.repo = CategoryRepository('db.json')
+        self.repo = CategoryRepository()
 
     @token_required
     def get(self, category_id=None):

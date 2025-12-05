@@ -139,10 +139,16 @@
             "price": 100.0
         },
         {
-            "id": 25,
-            "name": "Producto Prueba",
-            "category": "men",
-            "price": 100.0
+            "id": 26,
+            "name": "Producto Test 2",
+            "category": "women",
+            "price": 500.0
+        },
+        {
+            "id": 27,
+            "name": "Producto Test 3",
+            "category": "women",
+            "price": 550.0
         }
     ],
     "categories": [
