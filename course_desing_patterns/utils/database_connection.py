@@ -1,79 +1,30 @@
 import json
+import os
 
-class DatabaseConnection:
-    def __init__(self, json_file_path):
-        self.json_file_path = json_file_path
-        self.data = None
+class JsonDatabase:
+    def __init__(self, file_path):
+        self.file_path = file_path
 
-    def connect(self):
+    def _load(self):
+        if not os.path.exists(self.file_path):
+            return {}
         try:
-            with open(self.json_file_path, 'r') as json_file:
-                self.data = json.load(json_file)
-        except FileNotFoundError:
-            self.data = None
-            print("Error: json file not found.")
+            with open(self.file_path, 'r') as file:
+                return json.load(file)
+        except json.JSONDecodeError:
+            return {}
 
-    def get_products(self):
-        if self.data:
-            return self.data.get('products', [])
-        else:
-            return []
+    def _save(self, data):
+        with open(self.file_path, 'w') as file:
+            json.dump(data, file, indent=4)
 
-    def add_product(self, new_product):
-        if self.data:
-            products = self.data.get('products', [])
-            products.append(new_product)
-            self.data['products'] = products
-            with open(self.json_file_path, 'w') as json_file:
-                json.dump(self.data, json_file, indent=4)
-        else:
-            print("Error: something went wrong adding the product")
+    def get_data(self, key):
+        #Obtiene la lista asociada a una clave (ej: 'products')
+        data = self._load()
+        return data.get(key, [])
 
-    def get_categories(self):
-        if self.data:
-            return self.data.get('categories', [])
-        else:
-            return []
-
-    def add_category(self, new_category):
-        if self.data:
-            categories = self.data.get('categories', [])
-            categories.append(new_category)
-            self.data['categories'] = categories
-            with open(self.json_file_path, 'w') as json_file:
-                json.dump(self.data, json_file, indent=4)
-        else:
-            print("Error: something went wrond adding category")
-
-    def remove_category(self, category_name):
-        if self.data:
-            categories = self.data.get('categories', [])
-            categories = [cat for cat in categories if cat["name"] != category_name] 
-            self.data['categories'] = categories
-
-            with open(self.json_file_path, 'w') as json_file:
-                json.dump(self.data, json_file, indent=4)
-        else:
-            print("Error: something went wrond removing category")
-
-    def get_favorites(self):
-        if self.data:
-            return self.data.get('favorites', [])
-        else:
-            return []
-
-    def add_favorite(self, new_favorite):
-        if self.data:
-            favorites = self.data.get('favorites', [])
-            favorites.append(new_favorite)
-            self.data['favorites'] = favorites
-            with open(self.json_file_path, 'w') as json_file:
-                json.dump(self.data, json_file, indent=4)
-        else:
-            print("Error: something went wrong adding the favorite product")
-
-
-
-
-            
-
+    def save_data(self, key, new_list):
+        #Guarda la lista actualizada bajo una clave específica
+        full_data = self._load()
+        full_data[key] = new_list
+        self._save(full_data)
