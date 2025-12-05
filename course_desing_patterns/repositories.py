@@ -73,3 +73,20 @@ class FavoriteRepository(BaseRepository):
             if not (f['user_id'] == user_id and f['product_id'] == product_id)
         ]
         self._save_all(updated)
+
+
+class InventoryRepository(BaseRepository):
+    def __init__(self):
+        super().__init__('db.json', 'inventory')
+        
+    def get_stock(self, product_id: int) -> int:
+        #Obtiene el nivel de stock para un ID de producto específico.
+        inventory = self.get_all()
+        item = next((i for i in inventory if i['product_id'] == product_id), None)
+        return item.get('stock', 0) if item else 0
+
+    # Método para futura expansion (restar stock)
+    def update_stock(self, product_id: int, quantity: int):
+        inventory = self.get_all()
+        # Lógica para encontrar y actualizar el stock
+        pass

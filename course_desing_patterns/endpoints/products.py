@@ -1,20 +1,23 @@
 from flask import request
 from flask_restful import Resource, reqparse
 from utils.security import token_required
-from repositories import ProductRepository
+from repositories import ProductRepository,InventoryRepository
 
 class ProductsResource(Resource):
     def __init__(self):
         # Inyección de dependencia "manual"
-        self.repo = ProductRepository() 
+        self.repo = ProductRepository()
+        self.inventory_repo = InventoryRepository()
 
     @token_required
     def get(self, product_id=None):
+        
+        products = self.repo.get_all()
+
         # Filtro por categoría
         category_filter = request.args.get('category')
         
         if category_filter:
-            products = self.repo.get_all()
             filtered = [p for p in products if p['category'].lower() == category_filter.lower()]
             return filtered, 200
         
@@ -23,8 +26,20 @@ class ProductsResource(Resource):
             if product:
                 return product, 200
             return {'message': 'Product not found'}, 404
+
+        # Solo retornamos los productos disponibles
+        available_products = []
+        for product in products:
+            product_id = product['id']
+            # Consulta el stock usando el InventoryRepository inyectado
+            stock = self.inventory_repo.get_stock(product_id) 
+                
+            if stock > 0:
+                available_products.append(product)
+
+        return available_products
               
-        return self.repo.get_all(), 200
+        return products, 200
 
     @token_required
     def post(self):
