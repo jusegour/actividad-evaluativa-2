@@ -4,7 +4,7 @@ from flask import request
 from utils.database_connection import DatabaseConnection
 
 def is_valid_token(token):
-    return token == 'abcd1234'
+    return token == 'abcd12345'
 
 class ProductsResource(Resource):
     def __init__(self):

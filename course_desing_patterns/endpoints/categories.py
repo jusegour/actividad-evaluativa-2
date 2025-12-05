@@ -4,7 +4,7 @@ import json
 from utils.database_connection import DatabaseConnection
 
 def is_valid_token(token):
-    return token == 'abcd1234'
+    return token == 'abcd12345'
 
 class CategoriesResource(Resource):
     def __init__(self):

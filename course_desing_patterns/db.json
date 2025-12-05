@@ -143,6 +143,18 @@
             "name": "lala",
             "category": "kids",
             "price": 9.0
+        },
+        {
+            "id": 25,
+            "name": "Producto Prueba",
+            "category": "men",
+            "price": 100.0
+        },
+        {
+            "id": 25,
+            "name": "Producto Prueba",
+            "category": "men",
+            "price": 100.0
         }
     ],
     "categories": [
