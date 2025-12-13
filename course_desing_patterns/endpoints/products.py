@@ -33,13 +33,12 @@ class ProductsResource(Resource):
             product_id = product['id']
             # Consulta el stock usando el InventoryRepository inyectado
             stock = self.inventory_repo.get_stock(product_id) 
-                
+            product['stock'] = stock
+
             if stock > 0:
                 available_products.append(product)
 
         return available_products
-              
-        return products, 200
 
     @token_required
     def post(self):
